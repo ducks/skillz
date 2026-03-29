@@ -1,0 +1,15 @@
+[package]
+name = "skillz"
+version = "0.1.0"
+edition = "2024"
+authors = ["Jake Goldsborough <github@pancakes.email>"]
+description = "Claude Code skill package manager"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+dirs = "5"
+serde = { version = "1", features = ["derive"] }
+shellexpand = "3"
+toml = "0.8"
