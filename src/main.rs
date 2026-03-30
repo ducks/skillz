@@ -159,8 +159,10 @@ fn remove_skill(config: &Config, name: &str) -> Result<()> {
         anyhow::bail!("'{}' exists but is not a valid skill (no SKILL.md)", name);
     }
 
-    std::fs::remove_dir_all(&skill_path)
-        .context(format!("Failed to remove skill directory: {}", skill_path.display()))?;
+    std::fs::remove_dir_all(&skill_path).context(format!(
+        "Failed to remove skill directory: {}",
+        skill_path.display()
+    ))?;
 
     // Remove from registry
     registry.remove(name)?;

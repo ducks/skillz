@@ -1,22 +1,28 @@
-use anyhow::{Context, Result};
-use std::path::Path;
-use std::process::Command;
 use crate::config::Config;
 use crate::registry::Registry;
 use crate::validate;
+use anyhow::{Context, Result};
+use std::path::Path;
+use std::process::Command;
 
 pub fn install(config: &Config, source: &str) -> Result<()> {
     let (repo_url, skill_name) = parse_source(source)?;
     let mut registry = Registry::load()?;
 
     let skills_dir = config.skills_dir();
-    std::fs::create_dir_all(&skills_dir)
-        .context(format!("Failed to create skills directory: {}", skills_dir.display()))?;
+    std::fs::create_dir_all(&skills_dir).context(format!(
+        "Failed to create skills directory: {}",
+        skills_dir.display()
+    ))?;
 
     let target_path = skills_dir.join(&skill_name);
 
     if target_path.exists() {
-        anyhow::bail!("Skill '{}' already exists at {}", skill_name, target_path.display());
+        anyhow::bail!(
+            "Skill '{}' already exists at {}",
+            skill_name,
+            target_path.display()
+        );
     }
 
     println!("Installing {} from {}...", skill_name, repo_url);
@@ -51,7 +57,9 @@ pub fn install(config: &Config, source: &str) -> Result<()> {
         for warning in &validation.warnings {
             println!("  ⚠ Line {}: {}", warning.line, warning.message);
         }
-        println!("\nProceed with installation? The skill will still work, but you should review these warnings.");
+        println!(
+            "\nProceed with installation? The skill will still work, but you should review these warnings."
+        );
         print!("Continue? [y/N] ");
         use std::io::Write;
         std::io::stdout().flush()?;
@@ -96,9 +104,13 @@ fn parse_source(source: &str) -> Result<(String, String)> {
         Ok((repo_url, skill_name))
     } else if Path::new(source).exists() {
         // Local path - copy instead of clone
-        anyhow::bail!("Local path installation not yet supported. Use GitHub URL or github:user/repo format.");
+        anyhow::bail!(
+            "Local path installation not yet supported. Use GitHub URL or github:user/repo format."
+        );
     } else {
-        anyhow::bail!("Invalid source format. Use https://github.com/user/repo or github:user/repo");
+        anyhow::bail!(
+            "Invalid source format. Use https://github.com/user/repo or github:user/repo"
+        );
     }
 }
 

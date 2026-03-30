@@ -23,7 +23,8 @@ pub fn new_skill(name: &str, path: Option<&str>) -> Result<()> {
         .context(format!("Failed to create directory: {}", target.display()))?;
 
     // Create SKILL.md with template
-    let skill_content = format!(r#"# {}
+    let skill_content = format!(
+        r#"# {}
 
 A Claude Code skill for [brief description].
 
@@ -44,14 +45,16 @@ A Claude Code skill for [brief description].
 ## Examples
 
 [Example scenarios where this skill is useful]
-"#, name);
+"#,
+        name
+    );
 
     let skill_file = target.join("SKILL.md");
-    fs::write(&skill_file, skill_content)
-        .context("Failed to write SKILL.md")?;
+    fs::write(&skill_file, skill_content).context("Failed to write SKILL.md")?;
 
     // Create README.md
-    let readme_content = format!(r#"# {}
+    let readme_content = format!(
+        r#"# {}
 
 A Claude Code skill.
 
@@ -72,11 +75,12 @@ Once installed, the skill will be available to Claude Code.
 ## License
 
 MIT OR Apache-2.0
-"#, name, name);
+"#,
+        name, name
+    );
 
     let readme_file = target.join("README.md");
-    fs::write(&readme_file, readme_content)
-        .context("Failed to write README.md")?;
+    fs::write(&readme_file, readme_content).context("Failed to write README.md")?;
 
     // Initialize git repo
     let git_init = Command::new("git")
@@ -87,8 +91,7 @@ MIT OR Apache-2.0
     if git_init.is_ok() {
         // Create .gitignore
         let gitignore = target.join(".gitignore");
-        fs::write(&gitignore, ".DS_Store\n")
-            .context("Failed to write .gitignore")?;
+        fs::write(&gitignore, ".DS_Store\n").context("Failed to write .gitignore")?;
 
         println!("✓ Created skill directory: {}", target.display());
         println!("✓ Created SKILL.md (edit this with your skill prompt)");

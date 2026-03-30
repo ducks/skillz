@@ -1,13 +1,14 @@
-use anyhow::{Context, Result};
-use std::process::Command;
 use crate::config::Config;
 use crate::registry::Registry;
 use crate::validate;
+use anyhow::{Context, Result};
+use std::process::Command;
 
 pub fn update_skill(config: &Config, name: &str) -> Result<()> {
     let mut registry = Registry::load()?;
 
-    let entry = registry.get(name)
+    let entry = registry
+        .get(name)
         .ok_or_else(|| anyhow::anyhow!("Skill '{}' not found in registry", name))?
         .clone();
 
@@ -21,8 +22,7 @@ pub fn update_skill(config: &Config, name: &str) -> Result<()> {
     println!("Updating {} from {}...", name, entry.source);
 
     // Remove existing directory
-    std::fs::remove_dir_all(&skill_path)
-        .context("Failed to remove old skill directory")?;
+    std::fs::remove_dir_all(&skill_path).context("Failed to remove old skill directory")?;
 
     // Clone fresh copy
     let output = Command::new("git")

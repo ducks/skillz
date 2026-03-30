@@ -16,10 +16,10 @@ impl Config {
         let config_path = Self::default_config_path()?;
 
         if config_path.exists() {
-            let contents = std::fs::read_to_string(&config_path)
-                .context("Failed to read config file")?;
-            let mut config: Config = toml::from_str(&contents)
-                .context("Failed to parse config file")?;
+            let contents =
+                std::fs::read_to_string(&config_path).context("Failed to read config file")?;
+            let mut config: Config =
+                toml::from_str(&contents).context("Failed to parse config file")?;
             config.config_path = config_path;
             Ok(config)
         } else {
@@ -32,14 +32,11 @@ impl Config {
 
     pub fn save(&self) -> Result<()> {
         if let Some(parent) = self.config_path.parent() {
-            std::fs::create_dir_all(parent)
-                .context("Failed to create config directory")?;
+            std::fs::create_dir_all(parent).context("Failed to create config directory")?;
         }
 
-        let contents = toml::to_string_pretty(self)
-            .context("Failed to serialize config")?;
-        std::fs::write(&self.config_path, contents)
-            .context("Failed to write config file")?;
+        let contents = toml::to_string_pretty(self).context("Failed to serialize config")?;
+        std::fs::write(&self.config_path, contents).context("Failed to write config file")?;
 
         Ok(())
     }
@@ -74,8 +71,7 @@ impl Config {
     }
 
     fn default_config_path() -> Result<PathBuf> {
-        let config_dir = dirs::config_dir()
-            .context("Failed to determine config directory")?;
+        let config_dir = dirs::config_dir().context("Failed to determine config directory")?;
         Ok(config_dir.join("skillz").join("config.toml"))
     }
 
