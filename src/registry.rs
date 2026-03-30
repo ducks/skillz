@@ -24,10 +24,10 @@ impl Registry {
         let registry_path = Self::default_registry_path()?;
 
         if registry_path.exists() {
-            let contents = std::fs::read_to_string(&registry_path)
-                .context("Failed to read registry file")?;
-            let mut registry: Registry = toml::from_str(&contents)
-                .context("Failed to parse registry file")?;
+            let contents =
+                std::fs::read_to_string(&registry_path).context("Failed to read registry file")?;
+            let mut registry: Registry =
+                toml::from_str(&contents).context("Failed to parse registry file")?;
             registry.registry_path = registry_path;
             Ok(registry)
         } else {
@@ -40,14 +40,11 @@ impl Registry {
 
     pub fn save(&self) -> Result<()> {
         if let Some(parent) = self.registry_path.parent() {
-            std::fs::create_dir_all(parent)
-                .context("Failed to create registry directory")?;
+            std::fs::create_dir_all(parent).context("Failed to create registry directory")?;
         }
 
-        let contents = toml::to_string_pretty(self)
-            .context("Failed to serialize registry")?;
-        std::fs::write(&self.registry_path, contents)
-            .context("Failed to write registry file")?;
+        let contents = toml::to_string_pretty(self).context("Failed to serialize registry")?;
+        std::fs::write(&self.registry_path, contents).context("Failed to write registry file")?;
 
         Ok(())
     }
@@ -83,8 +80,7 @@ impl Registry {
     }
 
     fn default_registry_path() -> Result<PathBuf> {
-        let config_dir = dirs::config_dir()
-            .context("Failed to determine config directory")?;
+        let config_dir = dirs::config_dir().context("Failed to determine config directory")?;
         Ok(config_dir.join("skillz").join("registry.toml"))
     }
 }

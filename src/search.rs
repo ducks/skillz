@@ -15,10 +15,7 @@ pub fn search_skills(query: &str) -> Result<()> {
     // Check for optional GitHub token for higher rate limits
     let github_token = std::env::var("GITHUB_TOKEN").ok();
 
-    let mut curl_args = vec![
-        "-s",
-        "-H", "Accept: application/vnd.github.v3+json",
-    ];
+    let mut curl_args = vec!["-s", "-H", "Accept: application/vnd.github.v3+json"];
 
     let auth_header;
     if let Some(token) = &github_token {
@@ -30,9 +27,7 @@ pub fn search_skills(query: &str) -> Result<()> {
     curl_args.push(&api_url);
 
     // Use curl to fetch results
-    let output = Command::new("curl")
-        .args(&curl_args)
-        .output()?;
+    let output = Command::new("curl").args(&curl_args).output()?;
 
     if !output.status.success() {
         anyhow::bail!("GitHub API request failed");
@@ -46,7 +41,9 @@ pub fn search_skills(query: &str) -> Result<()> {
     // Check for errors
     if let Some(message) = response.get("message").and_then(|m| m.as_str()) {
         if message.contains("rate limit") {
-            anyhow::bail!("GitHub API rate limit exceeded. Set GITHUB_TOKEN env var for higher limits.");
+            anyhow::bail!(
+                "GitHub API rate limit exceeded. Set GITHUB_TOKEN env var for higher limits."
+            );
         }
         anyhow::bail!("GitHub API error: {}", message);
     }
@@ -56,16 +53,17 @@ pub fn search_skills(query: &str) -> Result<()> {
 
     if let Some(items) = response.get("items").and_then(|i| i.as_array()) {
         for repo in items {
-            let name = repo.get("full_name")
+            let name = repo
+                .get("full_name")
                 .and_then(|n| n.as_str())
                 .unwrap_or("unknown");
-            let url = repo.get("html_url")
-                .and_then(|u| u.as_str())
-                .unwrap_or("");
-            let description = repo.get("description")
+            let url = repo.get("html_url").and_then(|u| u.as_str()).unwrap_or("");
+            let description = repo
+                .get("description")
                 .and_then(|d| d.as_str())
                 .map(|s| s.to_string());
-            let stars = repo.get("stargazers_count")
+            let stars = repo
+                .get("stargazers_count")
                 .and_then(|s| s.as_u64())
                 .unwrap_or(0) as u32;
 
