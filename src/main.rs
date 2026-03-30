@@ -3,8 +3,11 @@ use clap::{Parser, Subcommand};
 
 mod config;
 mod install;
+mod registry;
+mod update;
 
 use config::Config;
+use registry::Registry;
 
 #[derive(Parser)]
 #[command(name = "skillz")]
@@ -27,6 +30,11 @@ enum Commands {
     Remove {
         /// Skill name to remove
         name: String,
+    },
+    /// Update installed skill(s)
+    Update {
+        /// Skill name to update (omit to update all)
+        name: Option<String>,
     },
     /// Configure skillz
     Config {
@@ -67,6 +75,13 @@ fn main() -> Result<()> {
         Commands::Remove { name } => {
             remove_skill(&config, &name)?;
         }
+        Commands::Update { name } => {
+            if let Some(skill_name) = name {
+                update::update_skill(&config, &skill_name)?;
+            } else {
+                update::update_all(&config)?;
+            }
+        }
         Commands::Config { action } => {
             handle_config(action)?;
         }
@@ -76,40 +91,38 @@ fn main() -> Result<()> {
 }
 
 fn list_skills(config: &Config) -> Result<()> {
+    let registry = Registry::load()?;
     let skills_dir = config.skills_dir();
 
-    if !skills_dir.exists() {
-        println!("No skills directory found at: {}", skills_dir.display());
+    if registry.skills.is_empty() {
+        println!("No skills installed.");
         return Ok(());
     }
 
     println!("Installed skills in {}:\n", skills_dir.display());
 
-    let mut found_any = false;
-    for entry in std::fs::read_dir(&skills_dir)? {
-        let entry = entry?;
-        let path = entry.path();
+    let mut skills: Vec<_> = registry.skills.iter().collect();
+    skills.sort_by_key(|(name, _)| *name);
 
-        if path.is_dir() {
-            let skill_file = path.join("SKILL.md");
-            if skill_file.exists() {
-                found_any = true;
-                let name = path.file_name()
-                    .and_then(|n| n.to_str())
-                    .unwrap_or("unknown");
-                println!("  - {}", name);
-            }
-        }
-    }
+    for (name, entry) in skills {
+        let installed = chrono::DateTime::parse_from_rfc3339(&entry.installed_at)
+            .map(|dt| dt.format("%Y-%m-%d").to_string())
+            .unwrap_or_else(|_| entry.installed_at.clone());
 
-    if !found_any {
-        println!("  (no skills installed)");
+        let synced = chrono::DateTime::parse_from_rfc3339(&entry.last_synced)
+            .map(|dt| dt.format("%Y-%m-%d").to_string())
+            .unwrap_or_else(|_| entry.last_synced.clone());
+
+        println!("  {} - {}", name, entry.source);
+        println!("    installed: {}  |  last synced: {}", installed, synced);
+        println!();
     }
 
     Ok(())
 }
 
 fn remove_skill(config: &Config, name: &str) -> Result<()> {
+    let mut registry = Registry::load()?;
     let skill_path = config.skills_dir().join(name);
 
     if !skill_path.exists() {
@@ -123,6 +136,9 @@ fn remove_skill(config: &Config, name: &str) -> Result<()> {
 
     std::fs::remove_dir_all(&skill_path)
         .context(format!("Failed to remove skill directory: {}", skill_path.display()))?;
+
+    // Remove from registry
+    registry.remove(name)?;
 
     println!("Removed skill: {}", name);
     Ok(())

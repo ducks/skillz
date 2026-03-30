@@ -2,9 +2,11 @@ use anyhow::{Context, Result};
 use std::path::Path;
 use std::process::Command;
 use crate::config::Config;
+use crate::registry::Registry;
 
 pub fn install(config: &Config, source: &str) -> Result<()> {
     let (repo_url, skill_name) = parse_source(source)?;
+    let mut registry = Registry::load()?;
 
     let skills_dir = config.skills_dir();
     std::fs::create_dir_all(&skills_dir)
@@ -42,6 +44,9 @@ pub fn install(config: &Config, source: &str) -> Result<()> {
     if git_dir.exists() {
         std::fs::remove_dir_all(&git_dir).ok();
     }
+
+    // Add to registry
+    registry.add(skill_name.clone(), repo_url.clone())?;
 
     println!("Successfully installed: {}", skill_name);
     println!("Location: {}", target_path.display());
