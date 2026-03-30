@@ -5,6 +5,7 @@ mod config;
 mod install;
 mod registry;
 mod update;
+mod validate;
 
 use config::Config;
 use registry::Registry;
