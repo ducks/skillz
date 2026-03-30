@@ -3,6 +3,7 @@ use clap::{Parser, Subcommand};
 
 mod config;
 mod install;
+mod new;
 mod registry;
 mod search;
 mod update;
@@ -51,6 +52,14 @@ enum Commands {
         #[command(subcommand)]
         action: ConfigAction,
     },
+    /// Create a new skill from template
+    New {
+        /// Skill name
+        name: String,
+        /// Directory to create skill in (default: current directory)
+        #[arg(short, long)]
+        path: Option<String>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -97,6 +106,9 @@ fn main() -> Result<()> {
         }
         Commands::Config { action } => {
             handle_config(action)?;
+        }
+        Commands::New { name, path } => {
+            new::new_skill(&name, path.as_deref())?;
         }
     }
 

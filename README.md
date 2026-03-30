@@ -26,6 +26,9 @@ Download the latest binary for your platform from [releases](https://github.com/
 ## Quick Start
 
 ```bash
+# Create a new skill from template
+skillz new my-skill
+
 # Search for skills on GitHub
 skillz search "daily notes"
 
@@ -53,6 +56,30 @@ skillz config set skills-dir ~/dotfiles/claude/skills
 ```
 
 ## Usage
+
+### Create New Skills
+
+Create a new skill from a template:
+
+```bash
+# Create in current directory
+skillz new my-skill
+
+# Create in specific directory
+skillz new my-skill --path ~/dev/skills
+```
+
+This creates:
+- `SKILL.md` - The skill prompt (edit this!)
+- `README.md` - Documentation for GitHub
+- `.gitignore` - Basic gitignore
+- Initialized git repository
+
+After creating:
+1. Edit `SKILL.md` with your skill prompt
+2. Commit and push to GitHub
+3. Install with `skillz install github:username/my-skill`
+4. Share with others!
 
 ### Install Skills
 
@@ -202,7 +229,6 @@ The `SKILL.md` file contains the skill prompt that Claude Code will load.
 - [ ] Dependency management (skill A requires skill B)
 - [ ] Rollback to previous versions
 - [ ] Local path installation (copy instead of clone)
-- [ ] Skill templates: `skillz new my-skill`
 
 ## Development
 
