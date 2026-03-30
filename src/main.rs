@@ -4,6 +4,7 @@ use clap::{Parser, Subcommand};
 mod config;
 mod install;
 mod registry;
+mod search;
 mod update;
 mod validate;
 
@@ -36,6 +37,14 @@ enum Commands {
     Update {
         /// Skill name to update (omit to update all)
         name: Option<String>,
+        /// Auto-sync all skills on startup (check for updates)
+        #[arg(long)]
+        auto: bool,
+    },
+    /// Search GitHub for skills
+    Search {
+        /// Search query
+        query: String,
     },
     /// Configure skillz
     Config {
@@ -76,12 +85,15 @@ fn main() -> Result<()> {
         Commands::Remove { name } => {
             remove_skill(&config, &name)?;
         }
-        Commands::Update { name } => {
+        Commands::Update { name, auto } => {
             if let Some(skill_name) = name {
                 update::update_skill(&config, &skill_name)?;
             } else {
-                update::update_all(&config)?;
+                update::update_all(&config, auto)?;
             }
+        }
+        Commands::Search { query } => {
+            search::search_skills(&query)?;
         }
         Commands::Config { action } => {
             handle_config(action)?;
