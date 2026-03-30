@@ -3,6 +3,7 @@ use std::path::Path;
 use std::process::Command;
 use crate::config::Config;
 use crate::registry::Registry;
+use crate::validate;
 
 pub fn install(config: &Config, source: &str) -> Result<()> {
     let (repo_url, skill_name) = parse_source(source)?;
@@ -31,15 +32,39 @@ pub fn install(config: &Config, source: &str) -> Result<()> {
         anyhow::bail!("Git clone failed: {}", stderr);
     }
 
-    // Validate that SKILL.md exists
-    let skill_file = target_path.join("SKILL.md");
-    if !skill_file.exists() {
+    // Validate skill
+    let validation = validate::validate_skill(&target_path)?;
+
+    if !validation.valid {
         // Clean up the cloned directory
         std::fs::remove_dir_all(&target_path).ok();
-        anyhow::bail!("Invalid skill: SKILL.md not found in repository");
+        eprintln!("\nValidation failed:");
+        for error in &validation.errors {
+            eprintln!("  ✗ {}", error);
+        }
+        anyhow::bail!("Skill validation failed");
     }
 
-    // Remove .git directory to avoid nested git repos (optional)
+    // Show warnings if any
+    if !validation.warnings.is_empty() {
+        println!("\nValidation warnings:");
+        for warning in &validation.warnings {
+            println!("  ⚠ Line {}: {}", warning.line, warning.message);
+        }
+        println!("\nProceed with installation? The skill will still work, but you should review these warnings.");
+        print!("Continue? [y/N] ");
+        use std::io::Write;
+        std::io::stdout().flush()?;
+
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input)?;
+        if !input.trim().eq_ignore_ascii_case("y") {
+            std::fs::remove_dir_all(&target_path).ok();
+            anyhow::bail!("Installation cancelled by user");
+        }
+    }
+
+    // Remove .git directory to avoid nested git repos
     let git_dir = target_path.join(".git");
     if git_dir.exists() {
         std::fs::remove_dir_all(&git_dir).ok();

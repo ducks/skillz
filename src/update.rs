@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use std::process::Command;
 use crate::config::Config;
 use crate::registry::Registry;
+use crate::validate;
 
 pub fn update_skill(config: &Config, name: &str) -> Result<()> {
     let mut registry = Registry::load()?;
@@ -34,10 +35,23 @@ pub fn update_skill(config: &Config, name: &str) -> Result<()> {
         anyhow::bail!("Git clone failed: {}", stderr);
     }
 
-    // Validate SKILL.md still exists
-    let skill_file = skill_path.join("SKILL.md");
-    if !skill_file.exists() {
-        anyhow::bail!("Updated repository no longer contains SKILL.md");
+    // Validate skill
+    let validation = validate::validate_skill(&skill_path)?;
+
+    if !validation.valid {
+        eprintln!("\nValidation failed for updated skill:");
+        for error in &validation.errors {
+            eprintln!("  ✗ {}", error);
+        }
+        anyhow::bail!("Updated skill validation failed");
+    }
+
+    // Show warnings if any
+    if !validation.warnings.is_empty() {
+        println!("\nValidation warnings for updated skill:");
+        for warning in &validation.warnings {
+            println!("  ⚠ Line {}: {}", warning.line, warning.message);
+        }
     }
 
     // Remove .git directory
