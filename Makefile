@@ -71,7 +71,7 @@ publish:
 	@cargo publish
 	@echo ""
 	@echo "Published to crates.io!"
-	@echo "View at: https://crates.io/crates/skillz"
+	@echo "View at: https://crates.io/crates/skillz-rs"
 
 # Build release binary
 build:

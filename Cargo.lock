@@ -319,7 +319,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "skillz"
+name = "skillz-rs"
 version = "20260330.0.1"
 dependencies = [
  "anyhow",
