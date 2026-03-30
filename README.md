@@ -4,16 +4,24 @@ Claude Code skill package manager. Install, manage, and share Claude Code skills
 
 ## Installation
 
+### From crates.io
+
 ```bash
-cargo install --path .
+cargo install skillz-rs
 ```
 
-Or build from source:
+### From source
 
 ```bash
+git clone https://github.com/jakegoldsborough/skillz
+cd skillz
 cargo build --release
 cp target/release/skillz ~/.local/bin/
 ```
+
+### From GitHub releases
+
+Download the latest binary for your platform from [releases](https://github.com/jakegoldsborough/skillz/releases)
 
 ## Quick Start
 
