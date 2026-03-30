@@ -1,6 +1,6 @@
 [package]
 name = "skillz"
-version = "20260330.0.0"
+version = "20260330.0.1"
 edition = "2024"
 authors = ["Jake Goldsborough <github@pancakes.email>"]
 description = "Claude Code skill package manager - Install and manage skills from GitHub"

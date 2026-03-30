@@ -320,7 +320,7 @@ dependencies = [
 
 [[package]]
 name = "skillz"
-version = "20260330.0.0"
+version = "20260330.0.1"
 dependencies = [
  "anyhow",
  "clap",
