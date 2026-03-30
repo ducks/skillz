@@ -1,4 +1,4 @@
-.PHONY: help version-bump release build test clean clippy
+.PHONY: help version-bump release publish build test clean clippy
 
 # Auto-generate version from today's date with auto-incrementing patch
 # Format: YYYYMMDD.0.X where X increments if releasing multiple times per day
@@ -21,8 +21,9 @@ help:
 	@echo "skillz Makefile"
 	@echo ""
 	@echo "Usage:"
-	@echo "  make release                       - Auto-version and release (recommended)"
+	@echo "  make release                       - Auto-version and release to GitHub (recommended)"
 	@echo "  make release VERSION=20260329.0.0  - Release with specific version"
+	@echo "  make publish                       - Publish to crates.io (run after release)"
 	@echo "  make build                         - Build release binary"
 	@echo "  make test                          - Run tests"
 	@echo "  make clippy                        - Run clippy"
@@ -61,6 +62,16 @@ release: version-bump
 	@echo "Created tag v$(VERSION) on main"
 	@echo "Pushed main and tag v$(VERSION)"
 	@echo "GitHub Actions will build release binaries"
+	@echo ""
+	@echo "To publish to crates.io, run: make publish"
+
+# Publish to crates.io
+publish:
+	@echo "Publishing to crates.io..."
+	@cargo publish
+	@echo ""
+	@echo "Published to crates.io!"
+	@echo "View at: https://crates.io/crates/skillz"
 
 # Build release binary
 build:
