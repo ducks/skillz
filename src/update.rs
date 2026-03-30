@@ -67,17 +67,23 @@ pub fn update_skill(config: &Config, name: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn update_all(config: &Config) -> Result<()> {
+pub fn update_all(config: &Config, auto: bool) -> Result<()> {
     let registry = Registry::load()?;
 
     if registry.skills.is_empty() {
-        println!("No skills installed.");
+        if !auto {
+            println!("No skills installed.");
+        }
         return Ok(());
     }
 
     let skill_names: Vec<String> = registry.skills.keys().cloned().collect();
 
-    println!("Updating {} skill(s)...\n", skill_names.len());
+    if auto {
+        println!("Auto-syncing {} skill(s)...", skill_names.len());
+    } else {
+        println!("Updating {} skill(s)...\n", skill_names.len());
+    }
 
     let mut updated = 0;
     let mut failed = 0;
@@ -86,16 +92,27 @@ pub fn update_all(config: &Config) -> Result<()> {
         match update_skill(config, &name) {
             Ok(_) => {
                 updated += 1;
-                println!();
+                if !auto {
+                    println!();
+                }
             }
             Err(e) => {
-                eprintln!("Failed to update {}: {}", name, e);
+                if !auto {
+                    eprintln!("Failed to update {}: {}", name, e);
+                    println!();
+                }
                 failed += 1;
-                println!();
             }
         }
     }
 
-    println!("Update complete: {} updated, {} failed", updated, failed);
+    if auto {
+        if updated > 0 {
+            println!("✓ Auto-sync complete: {} updated", updated);
+        }
+    } else {
+        println!("Update complete: {} updated, {} failed", updated, failed);
+    }
+
     Ok(())
 }
