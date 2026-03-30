@@ -1,5 +1,5 @@
 [package]
-name = "skillz"
+name = "skillz-rs"
 version = "20260330.0.1"
 edition = "2024"
 authors = ["Jake Goldsborough <github@pancakes.email>"]
@@ -11,6 +11,10 @@ documentation = "https://github.com/jakegoldsborough/skillz#readme"
 keywords = ["claude", "cli", "package-manager", "skills"]
 categories = ["command-line-utilities", "development-tools"]
 readme = "README.md"
+
+[[bin]]
+name = "skillz"
+path = "src/main.rs"
 
 [dependencies]
 anyhow = "1"
