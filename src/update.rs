@@ -1,8 +1,9 @@
 use crate::config::Config;
+use crate::install;
 use crate::registry::Registry;
 use crate::validate;
 use anyhow::{Context, Result};
-use std::process::Command;
+use std::path::PathBuf;
 
 pub fn update_skill(config: &Config, name: &str) -> Result<()> {
     let mut registry = Registry::load()?;
@@ -12,31 +13,26 @@ pub fn update_skill(config: &Config, name: &str) -> Result<()> {
         .ok_or_else(|| anyhow::anyhow!("Skill '{}' not found in registry", name))?
         .clone();
 
-    let skills_dir = config.skills_dir();
-    let skill_path = skills_dir.join(name);
+    let skill_path = entry
+        .install_path
+        .as_ref()
+        .map(PathBuf::from)
+        .unwrap_or_else(|| config.skills_dir().join(name));
 
     if !skill_path.exists() {
         anyhow::bail!("Skill directory not found: {}", skill_path.display());
     }
 
     println!("Updating {} from {}...", name, entry.source);
+    let spec = install::parse_source(&entry.source)?;
+    let parent = skill_path
+        .parent()
+        .context("Skill install path has no parent directory")?;
+    std::fs::create_dir_all(parent)?;
+    let checkout = install::checkout_source(&spec, parent)?;
+    let selected = install::selected_skill_path(checkout.path(), &spec)?;
 
-    // Remove existing directory
-    std::fs::remove_dir_all(&skill_path).context("Failed to remove old skill directory")?;
-
-    // Clone fresh copy
-    let output = Command::new("git")
-        .args(&["clone", &entry.source, skill_path.to_str().unwrap()])
-        .output()
-        .context("Failed to execute git clone")?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        anyhow::bail!("Git clone failed: {}", stderr);
-    }
-
-    // Validate skill
-    let validation = validate::validate_skill(&skill_path)?;
+    let validation = validate::validate_skill(&selected)?;
 
     if !validation.valid {
         eprintln!("\nValidation failed for updated skill:");
@@ -54,10 +50,22 @@ pub fn update_skill(config: &Config, name: &str) -> Result<()> {
         }
     }
 
-    // Remove .git directory
-    let git_dir = skill_path.join(".git");
-    if git_dir.exists() {
-        std::fs::remove_dir_all(&git_dir).ok();
+    let staged = tempfile::Builder::new()
+        .prefix(".skillz-update-")
+        .tempdir_in(parent)
+        .context("Failed to create update staging directory")?;
+    let staged_skill = staged.path().join(name);
+    install::copy_skill(&selected, &staged_skill)?;
+
+    let backup = tempfile::Builder::new()
+        .prefix(".skillz-backup-")
+        .tempdir_in(parent)
+        .context("Failed to create update backup directory")?;
+    let backup_skill = backup.path().join(name);
+    std::fs::rename(&skill_path, &backup_skill).context("Failed to stage existing skill")?;
+    if let Err(error) = std::fs::rename(&staged_skill, &skill_path) {
+        let _ = std::fs::rename(&backup_skill, &skill_path);
+        return Err(error).context("Failed to activate updated skill");
     }
 
     // Update sync time in registry

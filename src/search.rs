@@ -85,10 +85,10 @@ pub fn search_skills(query: &str) -> Result<()> {
 
     for (name, (url, description, stars)) in repos_vec {
         println!("  {} - ⭐ {}", name, stars);
-        if let Some(desc) = description {
-            if !desc.is_empty() {
-                println!("    {}", desc);
-            }
+        if let Some(desc) = description
+            && !desc.is_empty()
+        {
+            println!("    {}", desc);
         }
         println!("    {}", url);
         println!("    Install: skillz install {}", url);

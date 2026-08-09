@@ -1,6 +1,7 @@
 # skillz
 
-Claude Code skill package manager. Install, manage, and share Claude Code skills from GitHub.
+Skill package manager for Claude Code and Codex. Install, manage, and share
+agent skills from GitHub, including individual skills inside monorepos.
 
 ## Installation
 
@@ -35,6 +36,9 @@ skillz search "daily notes"
 # Install a skill from GitHub
 skillz install github:user/skill
 skillz install https://github.com/user/repo
+
+# Install one skill from a monorepo for Codex
+skillz install 'github:ducks/replaybook#skills/replaybook-build-scenario' --target codex
 
 # List installed skills with timestamps
 skillz list
@@ -95,9 +99,29 @@ skillz install https://github.com/user/my-skill
 
 The skill name will be extracted from the repository name.
 
+Select a skill inside a monorepo with a repository-relative fragment. The
+selected directory is copied as the installed skill, so sibling packages and
+the repository's `.git` directory are not installed:
+
+```bash
+skillz install 'github:ducks/replaybook#skills/replaybook-build-scenario'
+```
+
+Choose an agent's standard skill directory without changing global config:
+
+```bash
+skillz install github:user/my-skill --target claude
+skillz install github:user/my-skill --target codex
+```
+
+Claude installs under `~/.claude/skills`. Codex installs under
+`$CODEX_HOME/skills` when `CODEX_HOME` is set, otherwise
+`~/.codex/skills`. Skillz records the concrete install path, so later
+`list`, `update`, and `remove` commands continue to work across targets.
+
 ### Search for Skills
 
-Search GitHub for Claude Code skills:
+Search GitHub for agent skills:
 
 ```bash
 skillz search "status report"
@@ -162,7 +186,7 @@ skillz config get skills-dir
 **Default locations:**
 - Config: `~/.config/skillz/config.toml`
 - Registry: `~/.config/skillz/registry.toml`
-- Skills: `~/.claude/skills/` (or custom via config)
+- Skills: `~/.claude/skills/` by default, or the explicit Claude/Codex target
 
 ## Dotfiles Integration
 
@@ -182,7 +206,7 @@ If you manage your dotfiles with stow/chezmoi/yadm:
    ```bash
    cd ~/dotfiles
    git add claude/skills
-   git commit -m "Add Claude skill"
+   git commit -m "Add agent skill"
    ```
 
 4. On other machines, your dotfile manager will symlink `~/.claude/skills` to your dotfiles location.
@@ -221,11 +245,10 @@ my-skill/
 └── SKILL.md
 ```
 
-The `SKILL.md` file contains the skill prompt that Claude Code will load.
+The `SKILL.md` file contains the prompt the selected agent will load.
 
 ## Future Features
 
-- [ ] Semantic versioning (currently using timestamps)
 - [ ] Dependency management (skill A requires skill B)
 - [ ] Rollback to previous versions
 - [ ] Local path installation (copy instead of clone)

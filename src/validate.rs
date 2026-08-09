@@ -47,14 +47,14 @@ pub fn find_skill_file(skill_path: &Path) -> Option<std::path::PathBuf> {
 
     // Check plugin layout: skills/*/SKILL.md
     let skills_dir = skill_path.join("skills");
-    if skills_dir.is_dir() {
-        if let Ok(entries) = std::fs::read_dir(&skills_dir) {
-            for entry in entries.flatten() {
-                if entry.path().is_dir() {
-                    let candidate = entry.path().join("SKILL.md");
-                    if candidate.exists() {
-                        return Some(candidate);
-                    }
+    if skills_dir.is_dir()
+        && let Ok(entries) = std::fs::read_dir(&skills_dir)
+    {
+        for entry in entries.flatten() {
+            if entry.path().is_dir() {
+                let candidate = entry.path().join("SKILL.md");
+                if candidate.exists() {
+                    return Some(candidate);
                 }
             }
         }

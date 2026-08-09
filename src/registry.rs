@@ -6,6 +6,8 @@ use std::path::PathBuf;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SkillEntry {
     pub source: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub install_path: Option<String>,
     pub installed_at: String,
     pub last_synced: String,
 }
@@ -49,12 +51,18 @@ impl Registry {
         Ok(())
     }
 
-    pub fn add(&mut self, name: String, source: String) -> Result<()> {
+    pub fn add(
+        &mut self,
+        name: String,
+        source: String,
+        install_path: Option<String>,
+    ) -> Result<()> {
         let now = chrono::Utc::now().to_rfc3339();
         self.skills.insert(
             name,
             SkillEntry {
                 source,
+                install_path,
                 installed_at: now.clone(),
                 last_synced: now,
             },
@@ -82,5 +90,25 @@ impl Registry {
     fn default_registry_path() -> Result<PathBuf> {
         let config_dir = dirs::config_dir().context("Failed to determine config directory")?;
         Ok(config_dir.join("skillz").join("registry.toml"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn registry_entries_without_install_path_remain_compatible() {
+        let registry: Registry = toml::from_str(
+            r#"
+[skills.example]
+source = "https://github.com/user/example"
+installed_at = "2026-01-01T00:00:00Z"
+last_synced = "2026-01-01T00:00:00Z"
+"#,
+        )
+        .unwrap();
+
+        assert_eq!(registry.skills["example"].install_path, None);
     }
 }

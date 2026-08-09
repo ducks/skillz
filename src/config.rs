@@ -49,6 +49,21 @@ impl Config {
         }
     }
 
+    pub fn skills_dir_for(&self, target: Option<&str>) -> Result<PathBuf> {
+        match target {
+            None => Ok(self.skills_dir()),
+            Some("claude") => Ok(Self::home_dir().join(".claude").join("skills")),
+            Some("codex") => {
+                if let Some(codex_home) = std::env::var_os("CODEX_HOME") {
+                    Ok(PathBuf::from(codex_home).join("skills"))
+                } else {
+                    Ok(Self::home_dir().join(".codex").join("skills"))
+                }
+            }
+            Some(other) => anyhow::bail!("Unknown skill target: {}", other),
+        }
+    }
+
     pub fn config_path(&self) -> &PathBuf {
         &self.config_path
     }
@@ -76,9 +91,10 @@ impl Config {
     }
 
     fn default_skills_dir() -> PathBuf {
-        dirs::home_dir()
-            .unwrap_or_else(|| PathBuf::from("."))
-            .join(".claude")
-            .join("skills")
+        Self::home_dir().join(".claude").join("skills")
+    }
+
+    fn home_dir() -> PathBuf {
+        dirs::home_dir().unwrap_or_else(|| PathBuf::from("."))
     }
 }
