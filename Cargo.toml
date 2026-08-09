@@ -3,12 +3,12 @@ name = "skillz-rs"
 version = "20260330.0.8"
 edition = "2024"
 authors = ["Jake Goldsborough <github@pancakes.email>"]
-description = "Claude Code skill package manager - Install and manage skills from GitHub"
+description = "AI coding agent skill package manager - Install and manage skills from GitHub"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/ducks/skillz"
 homepage = "https://github.com/ducks/skillz"
 documentation = "https://github.com/ducks/skillz#readme"
-keywords = ["claude", "cli", "package-manager", "skills"]
+keywords = ["claude", "codex", "cli", "package-manager", "skills"]
 categories = ["command-line-utilities", "development-tools"]
 readme = "README.md"
 
@@ -24,8 +24,6 @@ dirs = "5"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 shellexpand = "3"
+tempfile = "3"
 toml = "0.8"
 urlencoding = "2"
-
-[dev-dependencies]
-tempfile = "3"

@@ -14,7 +14,7 @@ use registry::Registry;
 
 #[derive(Parser)]
 #[command(name = "skillz")]
-#[command(about = "Claude Code skill package manager", long_about = None)]
+#[command(about = "AI coding agent skill package manager", long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -22,10 +22,13 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Install a skill from GitHub or local path
+    /// Install a skill from GitHub
     Install {
-        /// GitHub URL (https://github.com/user/repo) or github:user/repo or local path
+        /// GitHub repository, optionally followed by #path/to/skill
         source: String,
+        /// Install for Claude Code or Codex instead of the configured default
+        #[arg(long, value_parser = ["claude", "codex"])]
+        target: Option<String>,
     },
     /// List installed skills
     List,
@@ -85,8 +88,8 @@ fn main() -> Result<()> {
     let config = Config::load()?;
 
     match cli.command {
-        Commands::Install { source } => {
-            install::install(&config, &source)?;
+        Commands::Install { source, target } => {
+            install::install(&config, &source, target.as_deref())?;
         }
         Commands::List => {
             list_skills(&config)?;
@@ -117,14 +120,12 @@ fn main() -> Result<()> {
 
 fn list_skills(config: &Config) -> Result<()> {
     let registry = Registry::load()?;
-    let skills_dir = config.skills_dir();
-
     if registry.skills.is_empty() {
         println!("No skills installed.");
         return Ok(());
     }
 
-    println!("Installed skills in {}:\n", skills_dir.display());
+    println!("Installed skills:\n");
 
     let mut skills: Vec<_> = registry.skills.iter().collect();
     skills.sort_by_key(|(name, _)| *name);
@@ -139,6 +140,12 @@ fn list_skills(config: &Config) -> Result<()> {
             .unwrap_or_else(|_| entry.last_synced.clone());
 
         println!("  {} - {}", name, entry.source);
+        let path = entry
+            .install_path
+            .as_ref()
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| config.skills_dir().join(name));
+        println!("    location: {}", path.display());
         println!("    installed: {}  |  last synced: {}", installed, synced);
         println!();
     }
@@ -148,7 +155,14 @@ fn list_skills(config: &Config) -> Result<()> {
 
 fn remove_skill(config: &Config, name: &str) -> Result<()> {
     let mut registry = Registry::load()?;
-    let skill_path = config.skills_dir().join(name);
+    let entry = registry
+        .get(name)
+        .ok_or_else(|| anyhow::anyhow!("Skill '{}' not found in registry", name))?
+        .clone();
+    let skill_path = entry
+        .install_path
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| config.skills_dir().join(name));
 
     if !skill_path.exists() {
         anyhow::bail!("Skill '{}' not found", name);

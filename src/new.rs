@@ -26,7 +26,7 @@ pub fn new_skill(name: &str, path: Option<&str>) -> Result<()> {
     let skill_content = format!(
         r#"# {}
 
-A Claude Code skill for [brief description].
+An AI coding agent skill for [brief description].
 
 ## What this skill does
 
@@ -40,7 +40,7 @@ A Claude Code skill for [brief description].
 
 ## Instructions
 
-[Detailed instructions for Claude on how to use this skill]
+[Detailed instructions for the agent on how to use this skill]
 
 ## Examples
 
@@ -56,7 +56,7 @@ A Claude Code skill for [brief description].
     let readme_content = format!(
         r#"# {}
 
-A Claude Code skill.
+An AI coding agent skill.
 
 ## Installation
 
@@ -70,7 +70,7 @@ skillz install github:username/{}
 
 ## Usage
 
-Once installed, the skill will be available to Claude Code.
+Once installed, the skill will be available to the selected agent.
 
 ## License
 
@@ -84,7 +84,7 @@ MIT OR Apache-2.0
 
     // Initialize git repo
     let git_init = Command::new("git")
-        .args(&["init"])
+        .args(["init"])
         .current_dir(&target)
         .output();
 
